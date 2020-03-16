@@ -52,3 +52,14 @@ type StateActioner interface {
 	State() Stater
 	Action() Actioner
 }
+
+// ActionStatter is something that can represent the stats associated with an
+// action.
+type ActionStatter interface {
+	Calls() int
+	SetCalls(int)
+	QValueRaw() float64
+	SetQValueRaw(float64)
+	QValueWeighted() float64
+	SetQValueWeighted(float64)
+}

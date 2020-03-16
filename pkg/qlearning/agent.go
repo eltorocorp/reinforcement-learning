@@ -32,14 +32,17 @@ func NewAgent(learningRate, discountFactor float64) *Agent {
 // See https://en.wikipedia.org/wiki/Q-learning#Algorithm
 func (a *Agent) Learn(stateAction iface.StateActioner, rewarder iface.Rewarder) {
 	newState := stateAction.Transition()
+	stats := a.qmap.GetStats(stateAction.State(), stateAction.Action())
 	newValue := math.Bellman(
-		a.qmap.GetValue(stateAction.State(), stateAction.Action()),
+		stats.QValueWeighted(),
 		a.learningRate,
 		rewarder.Reward(stateAction),
 		a.discountFactor,
-		a.getBestValue(newState),
+		a.getBestValue(newState).QValueWeighted(),
 	)
-	a.qmap.SetValue(stateAction, newValue)
+	stats.SetCalls(stats.Calls() + 1)
+	stats.SetQValueRaw(newValue)
+	a.qmap.UpdateStats(stateAction, stats)
 }
 
 // RecommendAction recommends an action for a given state based on behavior of
@@ -51,7 +54,7 @@ func (a *Agent) RecommendAction(state iface.Stater) (result iface.StateActioner)
 	bestValue := 0.0
 
 	for _, action := range state.PossibleActions() {
-		value := a.qmap.GetValue(state, action)
+		value := a.qmap.GetStats(state, action).QValueWeighted()
 		if value > bestValue {
 			bestActions = []iface.Actioner{action}
 			bestValue = value
@@ -73,10 +76,10 @@ func (a *Agent) RecommendAction(state iface.Stater) (result iface.StateActioner)
 }
 
 // getBestValue returns the best possible q-value for a state.
-func (a *Agent) getBestValue(state iface.Stater) (bestValue float64) {
-	for _, v := range a.qmap.GetActionsForState(state) {
-		if v > bestValue {
-			bestValue = v
+func (a *Agent) getBestValue(state iface.Stater) (bestStat iface.ActionStatter) {
+	for _, stat := range a.qmap.GetActionsForState(state) {
+		if stat.QValueWeighted() > bestStat.QValueWeighted() {
+			bestStat = stat
 		}
 	}
 	return
