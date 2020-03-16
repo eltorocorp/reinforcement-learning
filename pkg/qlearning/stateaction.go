@@ -28,14 +28,10 @@ func (sa *StateAction) Action() iface.Actioner {
 	return sa.action
 }
 
-// Value returns the Q-value associated with this StateAction.
-func (sa *StateAction) Value() float64 {
-	return sa.value
-}
-
-// SetValue sets the Q-value associated with this StateAction.
-func (sa *StateAction) SetValue(value float64) {
-	sa.value = value
+// Transition executes the stateaction's action against the stateaction's state,
+// resulting in a transition to a new state.
+func (sa *StateAction) Transition() iface.Stater {
+	return sa.State().Apply(sa.Action())
 }
 
 var _ iface.StateActioner = (*StateAction)(nil)
