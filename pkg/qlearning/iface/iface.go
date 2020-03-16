@@ -7,13 +7,17 @@ type Stater interface {
 	// state.
 	PossibleActions() []Actioner
 
+	// GetAction returns an action of a specified name, or an error if no action
+	// exists of that name for this state.
+	GetAction(string) (Actioner, error)
+
 	// String returns a string representation of the this state.
 	// Implementers should take care to ensure this is a consistent hash for a
 	// given state.
 	String() string
 
 	// Apply executes an action against the State, resulting in a new state.
-	Apply(Actioner) Stater
+	Apply(Actioner) (Stater, error)
 }
 
 // Actioner is an interace wrapping an action that can be applied to the model's
@@ -38,17 +42,17 @@ type Rewarder interface {
 type Agenter interface {
 	// Learn updates the model for a given state and action using the provided
 	// Rewarder.
-	Learn(StateActioner, Rewarder)
+	Learn(StateActioner, Rewarder) error
 
 	// RecommendAction recommends an action given a state and model that the
 	// agent has learned thus far.
-	RecommendAction(Stater) StateActioner
+	RecommendAction(Stater) (StateActioner, error)
 }
 
 // StateActioner is the pairing of a state and an action along with a Q-value for
 // the pair.
 type StateActioner interface {
-	Transition() Stater
+	Transition() (Stater, error)
 	State() Stater
 	Action() Actioner
 }

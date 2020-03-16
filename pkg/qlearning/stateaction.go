@@ -29,7 +29,7 @@ func (sa *StateAction) Action() iface.Actioner {
 
 // Transition executes the stateaction's action against the stateaction's state,
 // resulting in a transition to a new state.
-func (sa *StateAction) Transition() iface.Stater {
+func (sa *StateAction) Transition() (iface.Stater, error) {
 	return sa.State().Apply(sa.Action())
 }
 

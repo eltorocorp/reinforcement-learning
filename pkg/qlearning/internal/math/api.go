@@ -1,6 +1,6 @@
 package math
 
-// Bellman applies a Bellman equation to recommend a new q-value for a state
+// Bellman applies a Bellman operation to recommend a new q-value for a state
 // based on the supplied paramters.
 // See https://en.wikipedia.org/wiki/Bellman_equation
 func Bellman(oldValue, learningRate, reward, discountFactor, optimalFutureValue float64) float64 {
@@ -24,4 +24,12 @@ func Bellman(oldValue, learningRate, reward, discountFactor, optimalFutureValue 
 //   see https://fulmicoton.com/posts/bayesian_rating/
 func BayesianAverage(c, n, m, v float64) float64 {
 	return (c*m + n*v) / (c * n)
+}
+
+// SafeDivide returns 0 if the divisor is 0, avoiding div/0 panics.
+func SafeDivide(dividend, divisor float64) float64 {
+	if divisor == 0 {
+		return 0
+	}
+	return dividend / divisor
 }
