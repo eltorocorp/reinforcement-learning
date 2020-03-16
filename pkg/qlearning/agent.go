@@ -70,14 +70,4 @@ func (a *Agent) RecommendAction(state iface.Stater) (result iface.StateActioner)
 	return
 }
 
-// Bellman applies a Bellman equation to recommend a new q-value for a state
-// based on the supplied paramters.
-// See https://en.wikipedia.org/wiki/Bellman_equation
-func Bellman(oldValue, learningRate, reward, discountFactor, optimalFutureValue float64) float64 {
-	return oldValue +
-		learningRate*(reward+
-			discountFactor*optimalFutureValue-
-			oldValue)
-}
-
 var _ iface.Agenter = (*Agent)(nil)
