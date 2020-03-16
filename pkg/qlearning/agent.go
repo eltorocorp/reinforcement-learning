@@ -6,9 +6,10 @@ import (
 	"github.com/eltorocorp/markov/pkg/qlearning/iface"
 )
 
-// Agent ...
+// Agent executes the qlearning process and maintains state of the learning
+// process.
 type Agent struct {
-	qmap           map[string]map[string]float64
+	qmap           *QMap
 	learningRate   float64
 	discountFactor float64
 }
@@ -16,7 +17,7 @@ type Agent struct {
 // NewAgent returns a reference to a new Agent.
 func NewAgent(learningRate, discountFactor float64) *Agent {
 	return &Agent{
-		qmap:           make(map[string]map[string]float64),
+		qmap:           NewQMap(),
 		discountFactor: discountFactor,
 		learningRate:   learningRate,
 	}
@@ -30,13 +31,13 @@ func NewAgent(learningRate, discountFactor float64) *Agent {
 func (a *Agent) Learn(stateAction iface.StateActioner, rewarder iface.Rewarder) {
 	newState := stateAction.Transition()
 	newValue := Bellman(
-		a.getActionValueForState(stateAction.State(), stateAction.Action()),
+		a.qmap.GetValue(stateAction.State(), stateAction.Action()),
 		a.learningRate,
 		rewarder.Reward(stateAction),
 		a.discountFactor,
-		a.getBestOutcomeEstimateForState(newState),
+		a.qmap.GetBestValue(newState),
 	)
-	a.updateValueForStateAction(stateAction, newValue)
+	a.qmap.SetValue(stateAction, newValue)
 }
 
 // RecommendAction recommends an action for a given state based on behavior of
@@ -48,7 +49,7 @@ func (a *Agent) RecommendAction(state iface.Stater) (result iface.StateActioner)
 	bestValue := 0.0
 
 	for _, action := range state.PossibleActions() {
-		value := a.getActionValueForState(state, action)
+		value := a.qmap.GetValue(state, action)
 		if value > bestValue {
 			bestActions = []iface.Actioner{action}
 			bestValue = value
@@ -58,12 +59,11 @@ func (a *Agent) RecommendAction(state iface.Stater) (result iface.StateActioner)
 	}
 
 	if len(bestActions) == 1 {
-		result = NewStateAction(state, bestActions[0], bestValue)
+		result = NewStateAction(state, bestActions[0])
 	} else {
 		result = NewStateAction(
 			state,
 			bestActions[rand.Intn(len(bestActions))],
-			bestValue,
 		)
 	}
 
@@ -74,31 +74,10 @@ func (a *Agent) RecommendAction(state iface.Stater) (result iface.StateActioner)
 // based on the supplied paramters.
 // See https://en.wikipedia.org/wiki/Bellman_equation
 func Bellman(oldValue, learningRate, reward, discountFactor, optimalFutureValue float64) float64 {
-	return oldValue + learningRate*(reward+discountFactor*optimalFutureValue-oldValue)
-}
-
-func (a *Agent) getActionValueMapForState(state iface.Stater) map[string]float64 {
-	if _, exists := a.qmap[state.String()]; !exists {
-		a.qmap[state.String()] = make(map[string]float64)
-	}
-	return a.qmap[state.String()]
-}
-
-func (a *Agent) getActionValueForState(state iface.Stater, action iface.Actioner) float64 {
-	return a.getActionValueMapForState(state)[action.String()]
-}
-
-func (a *Agent) getBestOutcomeEstimateForState(state iface.Stater) (bestNewStateOutcome float64) {
-	for _, v := range a.getActionValueMapForState(state) {
-		if v > bestNewStateOutcome {
-			bestNewStateOutcome = v
-		}
-	}
-	return
-}
-
-func (a *Agent) updateValueForStateAction(stateAction iface.StateActioner, value float64) {
-	a.getActionValueMapForState(stateAction.State())[stateAction.Action().String()] = value
+	return oldValue +
+		learningRate*(reward+
+			discountFactor*optimalFutureValue-
+			oldValue)
 }
 
 var _ iface.Agenter = (*Agent)(nil)

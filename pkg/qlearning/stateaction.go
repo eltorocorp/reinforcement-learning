@@ -10,11 +10,10 @@ type StateAction struct {
 }
 
 // NewStateAction creates a new StateAction for a state and action.
-func NewStateAction(state iface.Stater, action iface.Actioner, value float64) *StateAction {
+func NewStateAction(state iface.Stater, action iface.Actioner) *StateAction {
 	return &StateAction{
 		state:  state,
 		action: action,
-		value:  value,
 	}
 }
 
