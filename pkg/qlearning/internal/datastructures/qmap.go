@@ -13,25 +13,16 @@ func NewQMap() *QMap {
 
 // GetValue return the q-value for a given state and action.
 func (qq *QMap) GetValue(state iface.Stater, action iface.Actioner) float64 {
-	return qq.getActionsForState(state)[action.String()]
-}
-
-// GetBestValue returns the best possible q-value for a state.
-func (qq *QMap) GetBestValue(state iface.Stater) (bestNewStateOutcome float64) {
-	for _, v := range qq.getActionsForState(state) {
-		if v > bestNewStateOutcome {
-			bestNewStateOutcome = v
-		}
-	}
-	return
+	return qq.GetActionsForState(state)[action.String()]
 }
 
 // SetValue sets the value of a given state and action.
 func (qq *QMap) SetValue(stateAction iface.StateActioner, value float64) {
-	qq.getActionsForState(stateAction.State())[stateAction.Action().String()] = value
+	qq.GetActionsForState(stateAction.State())[stateAction.Action().String()] = value
 }
 
-func (qq *QMap) getActionsForState(state iface.Stater) map[string]float64 {
+// GetActionsForState returns the actions associated with a given state.
+func (qq *QMap) GetActionsForState(state iface.Stater) map[string]float64 {
 	if _, exists := (*qq)[state.String()]; !exists {
 		(*qq)[state.String()] = make(map[string]float64)
 	}

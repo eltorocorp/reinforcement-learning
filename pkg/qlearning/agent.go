@@ -37,7 +37,7 @@ func (a *Agent) Learn(stateAction iface.StateActioner, rewarder iface.Rewarder) 
 		a.learningRate,
 		rewarder.Reward(stateAction),
 		a.discountFactor,
-		a.qmap.GetBestValue(newState),
+		a.getBestValue(newState),
 	)
 	a.qmap.SetValue(stateAction, newValue)
 }
@@ -69,6 +69,16 @@ func (a *Agent) RecommendAction(state iface.Stater) (result iface.StateActioner)
 		)
 	}
 
+	return
+}
+
+// getBestValue returns the best possible q-value for a state.
+func (a *Agent) getBestValue(state iface.Stater) (bestValue float64) {
+	for _, v := range a.qmap.GetActionsForState(state) {
+		if v > bestValue {
+			bestValue = v
+		}
+	}
 	return
 }
 
