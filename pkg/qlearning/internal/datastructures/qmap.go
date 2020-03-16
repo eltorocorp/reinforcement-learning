@@ -1,4 +1,4 @@
-package qlearning
+package datastructures
 
 import "github.com/eltorocorp/markov/pkg/qlearning/iface"
 

@@ -1,4 +1,4 @@
-package qlearning
+package math
 
 // Bellman applies a Bellman equation to recommend a new q-value for a state
 // based on the supplied paramters.

@@ -4,12 +4,14 @@ import (
 	"math/rand"
 
 	"github.com/eltorocorp/markov/pkg/qlearning/iface"
+	"github.com/eltorocorp/markov/pkg/qlearning/internal/datastructures"
+	"github.com/eltorocorp/markov/pkg/qlearning/internal/math"
 )
 
 // Agent executes the qlearning process and maintains state of the learning
 // process.
 type Agent struct {
-	qmap           *QMap
+	qmap           *datastructures.QMap
 	learningRate   float64
 	discountFactor float64
 }
@@ -17,7 +19,7 @@ type Agent struct {
 // NewAgent returns a reference to a new Agent.
 func NewAgent(learningRate, discountFactor float64) *Agent {
 	return &Agent{
-		qmap:           NewQMap(),
+		qmap:           datastructures.NewQMap(),
 		discountFactor: discountFactor,
 		learningRate:   learningRate,
 	}
@@ -30,7 +32,7 @@ func NewAgent(learningRate, discountFactor float64) *Agent {
 // See https://en.wikipedia.org/wiki/Q-learning#Algorithm
 func (a *Agent) Learn(stateAction iface.StateActioner, rewarder iface.Rewarder) {
 	newState := stateAction.Transition()
-	newValue := Bellman(
+	newValue := math.Bellman(
 		a.qmap.GetValue(stateAction.State(), stateAction.Action()),
 		a.learningRate,
 		rewarder.Reward(stateAction),
