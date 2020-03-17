@@ -9,9 +9,9 @@ import (
 	"github.com/eltorocorp/markov/pkg/qlearning/internal/math"
 )
 
-// Agent executes the qlearning process and maintains state of the learning
+// BayesianAgent executes the qlearning process and maintains state of the learning
 // process.
-type Agent struct {
+type BayesianAgent struct {
 	// TieBreakSeeder is a function that returns a number used to seed the
 	// random number generator used to break ties between actions of equal value.
 	// This property defaults to a function that returns time.Now().UnixNano(),
@@ -23,7 +23,7 @@ type Agent struct {
 	primingThreshold int
 }
 
-// NewAgent returns a reference to a new Agent.
+// NewBayesianAgent returns a reference to a new BayesianAgent.
 // primingthreshold: The number of observations required of any action before
 //					 the action's raw q-value is trusted more than average
 //					 q-value for all of a state's actions.
@@ -34,8 +34,8 @@ type Agent struct {
 // discountFactor:   From wikipedia: The discount factor determines the
 //					 importance of future rewards.
 //					 see: https://en.wikipedia.org/wiki/Q-learning#Discount_factor
-func NewAgent(primingThreshold int, learningRate, discountFactor float64) *Agent {
-	return &Agent{
+func NewBayesianAgent(primingThreshold int, learningRate, discountFactor float64) *BayesianAgent {
+	return &BayesianAgent{
 		TieBreakSeeder:   func() int64 { return time.Now().UnixNano() },
 		qmap:             datastructures.NewQMap(),
 		discountFactor:   discountFactor,
@@ -49,7 +49,7 @@ func NewAgent(primingThreshold int, learningRate, discountFactor float64) *Agent
 // to state A is updated using the supplied rewarder and a standard Bellman
 // equation.
 // See https://en.wikipedia.org/wiki/Q-learning#Algorithm
-func (a *Agent) Learn(stateAction iface.StateActioner, rewarder iface.Rewarder) error {
+func (a *BayesianAgent) Learn(stateAction iface.StateActioner, rewarder iface.Rewarder) error {
 	newState, err := stateAction.Transition()
 	if err != nil {
 		return err
@@ -81,7 +81,7 @@ func (a *Agent) Learn(stateAction iface.StateActioner, rewarder iface.Rewarder) 
 // the system that the agent has learned thus far.
 // If the q-value for two or more actions are the same, the action is chosen at
 // random.
-func (a *Agent) RecommendAction(state iface.Stater) (iface.StateActioner, error) {
+func (a *BayesianAgent) RecommendAction(state iface.Stater) (iface.StateActioner, error) {
 	type actionValue struct {
 		action string
 		value  float64
@@ -110,7 +110,7 @@ func (a *Agent) RecommendAction(state iface.Stater) (iface.StateActioner, error)
 	return NewStateAction(state, bestAction), nil
 }
 
-func (a *Agent) applyActionWeights(state iface.Stater) {
+func (a *BayesianAgent) applyActionWeights(state iface.Stater) {
 	rawValueSum := 0.0
 	existingActionCount := 0.0
 	for _, action := range state.PossibleActions() {
@@ -136,7 +136,7 @@ func (a *Agent) applyActionWeights(state iface.Stater) {
 }
 
 // getBestValue returns the best possible q-value for a state.
-func (a *Agent) getBestValue(state iface.Stater) (bestStat iface.ActionStatter) {
+func (a *BayesianAgent) getBestValue(state iface.Stater) (bestStat iface.ActionStatter) {
 	for _, stat := range a.qmap.GetActionsForState(state) {
 		if stat.QValueWeighted() > bestStat.QValueWeighted() {
 			bestStat = stat
@@ -145,4 +145,4 @@ func (a *Agent) getBestValue(state iface.Stater) (bestStat iface.ActionStatter) 
 	return
 }
 
-var _ iface.Agenter = (*Agent)(nil)
+var _ iface.Agenter = (*BayesianAgent)(nil)
