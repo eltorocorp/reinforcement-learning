@@ -24,7 +24,7 @@ import (
 // BayesianAgent applies a Bayesian Average function to each potential action.
 // In essense, when an action has been called few (or zero) times, it is assumed
 // that the reward for calling that action might be similar to that of calling
-// any other action. Thus the agent weight its potential reward closer to the
+// any other action. Thus the agent weights its potential reward closer to the
 // mean of all other actions. However, as an action is called more times, the
 // agent begins to evaluate the action on its observed cumulative reward moreso
 // than the mean of all other actions.
@@ -41,16 +41,16 @@ type BayesianAgent struct {
 }
 
 // NewBayesianAgent returns a reference to a new BayesianAgent.
-// primingthreshold: The number of observations required of any action before
-//					 the action's raw q-value is trusted more than average
-//					 q-value for all of a state's actions.
-// learningRate:	 Typically a number between 0 and 1 (though it can exceed 1)
-//					 From wikipedia: Determins to what extent newly acquired
-//					 information overrides old information.
-//					 see: https://en.wikipedia.org/wiki/Q-learning#Learning_Rate
-// discountFactor:   From wikipedia: The discount factor determines the
-//					 importance of future rewards.
-//					 see: https://en.wikipedia.org/wiki/Q-learning#Discount_factor
+//	primingthreshold: The number of observations required of any action before
+//					  the action's raw q-value is trusted more than average
+//					  q-value for all of a state's actions.
+// 	learningRate:	  Typically a number between 0 and 1 (though it can exceed 1)
+//					  From wikipedia: Determins to what extent newly acquired
+//					  information overrides old information.
+//					  see: https://en.wikipedia.org/wiki/Q-learning#Learning_Rate
+//  discountFactor:   From wikipedia: The discount factor determines the
+//					  importance of future rewards.
+//					  see: https://en.wikipedia.org/wiki/Q-learning#Discount_factor
 func NewBayesianAgent(primingThreshold int, learningRate, discountFactor float64) *BayesianAgent {
 	return &BayesianAgent{
 		TieBreakSeeder:   func() int64 { return time.Now().UnixNano() },
