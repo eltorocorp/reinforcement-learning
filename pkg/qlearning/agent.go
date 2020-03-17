@@ -12,6 +12,10 @@ import (
 // Agent executes the qlearning process and maintains state of the learning
 // process.
 type Agent struct {
+	// TieBreakSeeder is a function that returns a number used to seed the
+	// random number generator used to break ties between actions of equal value.
+	// This property defaults to a function that returns time.Now().UnixNano(),
+	// but is exposed so this behavior can be overridden for testing.
 	TieBreakSeeder   func() int64
 	qmap             *datastructures.QMap
 	learningRate     float64
@@ -20,6 +24,16 @@ type Agent struct {
 }
 
 // NewAgent returns a reference to a new Agent.
+// primingthreshold: The number of observations required of any action before
+//					 the action's raw q-value is trusted more than average
+//					 q-value for all of a state's actions.
+// learningRate:	 Typically a number between 0 and 1 (though it can exceed 1)
+//					 From wikipedia: Determins to what extent newly acquired
+//					 information overrides old information.
+//					 see: https://en.wikipedia.org/wiki/Q-learning#Learning_Rate
+// discountFactor:   From wikipedia: The discount factor determines the
+//					 importance of future rewards.
+//					 see: https://en.wikipedia.org/wiki/Q-learning#Discount_factor
 func NewAgent(primingThreshold int, learningRate, discountFactor float64) *Agent {
 	return &Agent{
 		TieBreakSeeder:   func() int64 { return time.Now().UnixNano() },
