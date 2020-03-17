@@ -9,8 +9,25 @@ import (
 	"github.com/eltorocorp/markov/pkg/qlearning/internal/math"
 )
 
-// BayesianAgent executes the qlearning process and maintains state of the learning
-// process.
+// BayesianAgent provides facilities for maintaining the learning state of a
+// system, making recommendations for actions based on the current and predicted
+// state of the system, and executing actions based on those recommendation.
+//
+// The BayesianAgent is so named because of the way it handles initial
+// conditions of the q-values associated with each of a state's actions.
+// When the agent is asked to recommend an action for some state, the agent
+// does so by choosing the action that has previously recorded a greater
+// cumulative reward than other possible actions.
+//
+// This poses a dilema for initial conditions when no reward has been previously
+// recorded for one or more of the potential actions. To overcome this, the
+// BayesianAgent applies a Bayesian Average function to each potential action.
+// In essense, when an action has been called few (or zero) times, it is assumed
+// that the reward for calling that action might be similar to that of calling
+// any other action. Thus the agent weight its potential reward closer to the
+// mean of all other actions. However, as an action is called more times, the
+// agent begins to evaluate the action on its observed cumulative reward moreso
+// than the mean of all other actions.
 type BayesianAgent struct {
 	// TieBreakSeeder is a function that returns a number used to seed the
 	// random number generator used to break ties between actions of equal value.
@@ -80,7 +97,7 @@ func (a *BayesianAgent) Learn(stateAction iface.StateActioner, rewarder iface.Re
 // RecommendAction recommends an action for a given state based on behavior of
 // the system that the agent has learned thus far.
 // If the q-value for two or more actions are the same, the action is chosen at
-// random.
+// random. See BayesianAgent struct docs for more information.
 func (a *BayesianAgent) RecommendAction(state iface.Stater) (iface.StateActioner, error) {
 	type actionValue struct {
 		action string
