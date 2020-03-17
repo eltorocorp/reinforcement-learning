@@ -1,6 +1,6 @@
 package qlearning
 
-import "github.com/eltorocorp/markov/pkg/qlearning/iface"
+import "github.com/eltorocorp/reinforcement-learning/pkg/qlearning/iface"
 
 // ActionStats contains statistics about an action that has been applied to some
 // state.

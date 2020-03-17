@@ -1,6 +1,6 @@
 package datastructures
 
-import "github.com/eltorocorp/markov/pkg/qlearning/iface"
+import "github.com/eltorocorp/reinforcement-learning/pkg/qlearning/iface"
 
 // QMap is a mapping of states to actions (and each action's q-value).
 type QMap struct {

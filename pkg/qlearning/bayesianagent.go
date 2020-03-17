@@ -4,9 +4,9 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/eltorocorp/markov/pkg/qlearning/iface"
-	"github.com/eltorocorp/markov/pkg/qlearning/internal/datastructures"
-	"github.com/eltorocorp/markov/pkg/qlearning/internal/math"
+	"github.com/eltorocorp/reinforcement-learning/pkg/qlearning/iface"
+	"github.com/eltorocorp/reinforcement-learning/pkg/qlearning/internal/datastructures"
+	"github.com/eltorocorp/reinforcement-learning/pkg/qlearning/internal/math"
 )
 
 // BayesianAgent provides facilities for maintaining the learning state of a

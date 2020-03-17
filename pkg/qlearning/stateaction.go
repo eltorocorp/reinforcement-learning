@@ -1,6 +1,6 @@
 package qlearning
 
-import "github.com/eltorocorp/markov/pkg/qlearning/iface"
+import "github.com/eltorocorp/reinforcement-learning/pkg/qlearning/iface"
 
 // StateAction is a grouping of an action to a state along with a q-value.
 type StateAction struct {
