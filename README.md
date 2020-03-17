@@ -1,2 +1,3 @@
-# markov
-          Markov decision process for reinforcement learning.
+# Reinforcement Learning
+
+Implementations of reinforcement learning processes in Go.
