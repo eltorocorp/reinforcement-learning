@@ -1,6 +1,7 @@
 package qlearning
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -9,9 +10,10 @@ import (
 	"github.com/eltorocorp/reinforcement-learning/pkg/qlearning/internal/math"
 )
 
-// BayesianAgent provides facilities for maintaining the learning state of a
-// system, making recommendations for actions based on the current and predicted
-// state of the system, and executing actions based on those recommendation.
+// BayesianAgent provides facilities for 1) maintaining the learning state of an
+// environment, 2) making recommendations for actions based on the previous,
+// current, and predicted states of the system, and 3) executing actions based
+// that have been recommended by the agent.
 //
 // The BayesianAgent is so named because of the way it handles initial
 // conditions of the q-values associated with each of a state's actions.
@@ -43,18 +45,20 @@ type BayesianAgent struct {
 // NewBayesianAgent returns a reference to a new BayesianAgent.
 //
 // primingthreshold:
-//     The number of observations required of any action before the action's
-//     raw q-value is trusted more than average q-value for all of a state's
-//     actions.
+//  The number of observations required of any action before the action's
+//  raw q-value is trusted more than average q-value for all of a state's
+//  actions.
+//
 // learningRate:
-//     Typically a number between 0 and 1 (though it can exceed 1)
-//	   From wikipedia: Determins to what extent newly acquired information
-//     overrides old information.
-//	   see: https://en.wikipedia.org/wiki/Q-learning#Learning_Rate
+//  Typically a number between 0 and 1 (though it can exceed 1)
+//  From wikipedia: Determins to what extent newly acquired information
+//  overrides old information.
+//  see: https://en.wikipedia.org/wiki/Q-learning#Learning_Rate
+//
 // discountFactor:
-//    From wikipedia: The discount factor determines the importance of future
-//    rewards.
-//	  see: https://en.wikipedia.org/wiki/Q-learning#Discount_factor
+//  From wikipedia: The discount factor determines the importance of future
+//  rewards.
+//  see: https://en.wikipedia.org/wiki/Q-learning#Discount_factor
 func NewBayesianAgent(primingThreshold int, learningRate, discountFactor float64) *BayesianAgent {
 	return &BayesianAgent{
 		TieBreakSeeder:   func() int64 { return time.Now().UnixNano() },
@@ -65,20 +69,15 @@ func NewBayesianAgent(primingThreshold int, learningRate, discountFactor float64
 	}
 }
 
-// Learn executes the supplied stateAction, completing a transition from
-// the current state (A) to a new state (B). The q-value for the action applied
-// to state A is updated using the supplied rewarder and a standard Bellman
-// equation.
+// Learn updates the reinforcement model according to a transition that has
+// occured from a previous state through some action to a current state. The
+// reward value represents the positive, negative, or neutral impact that the
+// transition has had on the environment.
 // See https://en.wikipedia.org/wiki/Q-learning#Algorithm
-func (a *BayesianAgent) Learn(stateAction iface.StateActioner, rewarder iface.Rewarder) error {
-	newState, err := stateAction.Transition()
-	if err != nil {
-		return err
-	}
-
+func (a *BayesianAgent) Learn(previousState iface.Stater, actionTaken iface.Actioner, currentState iface.Stater, reward float64) {
 	var stats iface.ActionStatter
 	var found bool
-	stats, found = a.qmap.GetStats(stateAction.State(), stateAction.Action())
+	stats, found = a.qmap.GetStats(previousState, actionTaken)
 	if !found {
 		stats = new(ActionStats)
 	}
@@ -86,23 +85,29 @@ func (a *BayesianAgent) Learn(stateAction iface.StateActioner, rewarder iface.Re
 	newValue := math.Bellman(
 		stats.QValueWeighted(),
 		a.learningRate,
-		rewarder.Reward(stateAction),
+		reward,
 		a.discountFactor,
-		a.getBestValue(newState).QValueWeighted(),
+		a.getBestValue(currentState).QValueWeighted(),
 	)
 	stats.SetCalls(stats.Calls() + 1)
 	stats.SetQValueRaw(newValue)
-	a.qmap.UpdateStats(stateAction, stats)
-	a.applyActionWeights(stateAction.State())
+	a.qmap.UpdateStats(previousState, actionTaken, stats)
+	a.applyActionWeights(previousState)
+}
 
-	return nil
+// Transition applies an action to a given state.
+func (a *BayesianAgent) Transition(currentState iface.Stater, action iface.Actioner) error {
+	if !currentState.ActionIsCompatible(action) {
+		return fmt.Errorf("action %v is not compatible with state %v", currentState.ID(), action.ID())
+	}
+	return currentState.Apply(action)
 }
 
 // RecommendAction recommends an action for a given state based on behavior of
 // the system that the agent has learned thus far.
 // If the q-value for two or more actions are the same, the action is chosen at
 // random. See BayesianAgent struct docs for more information.
-func (a *BayesianAgent) RecommendAction(state iface.Stater) (iface.StateActioner, error) {
+func (a *BayesianAgent) RecommendAction(state iface.Stater) (iface.Actioner, error) {
 	type actionValue struct {
 		action string
 		value  float64
@@ -128,7 +133,7 @@ func (a *BayesianAgent) RecommendAction(state iface.Stater) (iface.StateActioner
 	if err != nil {
 		return nil, err
 	}
-	return NewStateAction(state, bestAction), nil
+	return bestAction, nil
 }
 
 func (a *BayesianAgent) applyActionWeights(state iface.Stater) {
@@ -137,7 +142,7 @@ func (a *BayesianAgent) applyActionWeights(state iface.Stater) {
 	for _, action := range state.PossibleActions() {
 		stats, found := a.qmap.GetStats(state, action)
 		if !found {
-			a.qmap.UpdateStats(NewStateAction(state, action), new(ActionStats))
+			a.qmap.UpdateStats(state, action, new(ActionStats))
 		} else {
 			rawValueSum += stats.QValueRaw()
 			existingActionCount++

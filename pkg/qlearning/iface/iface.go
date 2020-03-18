@@ -6,6 +6,10 @@ type Stater interface {
 	// state.
 	PossibleActions() []Actioner
 
+	// ActionIsCompatible checks whether or not the supplied action is
+	// compatible with this state.
+	ActionIsCompatible(Actioner) bool
+
 	// GetAction returns an action of a specified name, or an error if no action
 	// exists of that name for this state.
 	GetAction(string) (Actioner, error)
@@ -15,8 +19,8 @@ type Stater interface {
 	// given state.
 	ID() string
 
-	// Apply executes an action against the State, resulting in a new state.
-	Apply(Actioner) (Stater, error)
+	// Apply executes the supplied action.
+	Apply(Actioner) error
 }
 
 // Actioner is an interace wrapping an action that can be applied to the model's

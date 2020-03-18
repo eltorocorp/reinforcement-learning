@@ -19,19 +19,19 @@ func NewQMap() *QMap {
 // method will return nil, false.
 func (qq *QMap) GetStats(state iface.Stater, action iface.Actioner) (stats iface.ActionStatter, found bool) {
 	actions := qq.GetActionsForState(state)
-	stats, found = actions[action.String()]
+	stats, found = actions[action.ID()]
 	return
 }
 
 // UpdateStats updates the stats of a given state and action.
-func (qq *QMap) UpdateStats(stateAction iface.StateActioner, stats iface.ActionStatter) {
-	qq.GetActionsForState(stateAction.State())[stateAction.Action().String()] = stats
+func (qq *QMap) UpdateStats(state iface.Stater, action iface.Actioner, stats iface.ActionStatter) {
+	qq.GetActionsForState(state)[action.ID()] = stats
 }
 
 // GetActionsForState returns the actions associated with a given state.
 func (qq *QMap) GetActionsForState(state iface.Stater) map[string]iface.ActionStatter {
-	if _, exists := qq.data[state.String()]; !exists {
-		qq.data[state.String()] = make(map[string]iface.ActionStatter)
+	if _, exists := qq.data[state.ID()]; !exists {
+		qq.data[state.ID()] = make(map[string]iface.ActionStatter)
 	}
-	return qq.data[state.String()]
+	return qq.data[state.ID()]
 }
