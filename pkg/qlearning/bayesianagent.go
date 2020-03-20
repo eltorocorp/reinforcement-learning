@@ -72,9 +72,20 @@ func NewBayesianAgent(primingThreshold int, learningRate, discountFactor float64
 // Learn updates the reinforcement model according to a transition that has
 // occured from a previous state through some action to a current state. The
 // reward value represents the positive, negative, or neutral impact that the
-// transition has had on the environment.
+// transition has had on the environment. If no action has been previously
+// taken, or there is no previous state (the system is being bootstrapped),
+// nil may be supplied for previousState or actionTaken. In either of these
+// cases, Learn becomes a no-op. Learn will panic if currentState is nil.
 // See https://en.wikipedia.org/wiki/Q-learning#Algorithm
 func (a *BayesianAgent) Learn(previousState iface.Stater, actionTaken iface.Actioner, currentState iface.Stater, reward float64) {
+	if previousState == nil || actionTaken == nil {
+		return
+	}
+
+	if currentState == nil {
+		panic("currentState must not be nil")
+	}
+
 	var stats iface.ActionStatter
 	var found bool
 	stats, found = a.qmap.GetStats(previousState, actionTaken)
