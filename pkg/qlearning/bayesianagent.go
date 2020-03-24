@@ -138,6 +138,10 @@ func (a *BayesianAgent) RecommendAction(state iface.Stater) (iface.Actioner, err
 		}
 	}
 
+	if len(bestActions) == 0 {
+		return nil, fmt.Errorf("state '%v' reports no possible actions", state.ID())
+	}
+
 	rand.Seed(a.TieBreakSeeder())
 	tieBreaker := rand.Intn(len(bestActions))
 	bestAction, err := state.GetAction(bestActions[tieBreaker].action)
