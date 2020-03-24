@@ -160,7 +160,7 @@ func (a *BayesianAgent) applyActionWeights(state iface.Stater) {
 		if !found {
 			a.qmap.UpdateStats(state, action, new(ActionStats))
 		} else {
-			rawValueSum += stats.QValueRaw()
+			rawValueSum += nanToZero(stats.QValueRaw())
 			existingActionCount++
 		}
 	}
@@ -187,7 +187,7 @@ func nanToZero(f float64) float64 {
 // getBestValue returns the best possible q-value for a state.
 func (a *BayesianAgent) getBestValue(state iface.Stater) (bestStat iface.ActionStatter) {
 	for _, stat := range a.qmap.GetActionsForState(state) {
-		if stat.QValueWeighted() > bestStat.QValueWeighted() {
+		if nanToZero(stat.QValueWeighted()) > nanToZero(bestStat.QValueWeighted()) {
 			bestStat = stat
 		}
 	}
