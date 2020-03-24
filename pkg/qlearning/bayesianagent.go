@@ -2,12 +2,13 @@ package qlearning
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"time"
 
 	"github.com/eltorocorp/reinforcement-learning/pkg/qlearning/iface"
 	"github.com/eltorocorp/reinforcement-learning/pkg/qlearning/internal/datastructures"
-	"github.com/eltorocorp/reinforcement-learning/pkg/qlearning/internal/math"
+	qlmath "github.com/eltorocorp/reinforcement-learning/pkg/qlearning/internal/math"
 )
 
 // BayesianAgent provides facilities for 1) maintaining the learning state of an
@@ -93,7 +94,7 @@ func (a *BayesianAgent) Learn(previousState iface.Stater, actionTaken iface.Acti
 		stats = new(ActionStats)
 	}
 
-	newValue := math.Bellman(
+	newValue := qlmath.Bellman(
 		stats.QValueWeighted(),
 		a.learningRate,
 		reward,
@@ -164,16 +165,23 @@ func (a *BayesianAgent) applyActionWeights(state iface.Stater) {
 		}
 	}
 
-	mean := math.SafeDivide(rawValueSum, existingActionCount)
+	mean := qlmath.SafeDivide(rawValueSum, existingActionCount)
 	for _, stats := range a.qmap.GetActionsForState(state) {
-		weighedMean := math.BayesianAverage(
+		weighedMean := qlmath.BayesianAverage(
 			float64(a.primingThreshold),
 			float64(stats.Calls()),
-			mean,
-			stats.QValueRaw(),
+			nanToZero(mean),
+			nanToZero(stats.QValueRaw()),
 		)
 		stats.SetQValueWeighted(weighedMean)
 	}
+}
+
+func nanToZero(f float64) float64 {
+	if math.IsNaN(f) {
+		return 0
+	}
+	return f
 }
 
 // getBestValue returns the best possible q-value for a state.

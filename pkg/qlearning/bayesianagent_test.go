@@ -1,6 +1,7 @@
 package qlearning_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/eltorocorp/reinforcement-learning/mocks/agent"
@@ -19,12 +20,12 @@ func TestBayesianAgentRecommendAction(t *testing.T) {
 		expAction       string
 		expError        error
 	}{
-		// {
-		// 	name:            "Error if no actions",
-		// 	possibleActions: []string{},
-		// 	expAction:       "",
-		// 	expError:        fmt.Errorf("state '%v' reports no possible actions", testStateID),
-		// },
+		{
+			name:            "Error if no actions",
+			possibleActions: []string{},
+			expAction:       "",
+			expError:        fmt.Errorf("state '%v' reports no possible actions", testStateID),
+		},
 		{
 			name:            "Action returned when bootstrapping",
 			possibleActions: []string{"A"},
@@ -48,6 +49,13 @@ func TestBayesianAgentRecommendAction(t *testing.T) {
 				actions[i] = newAction
 			}
 			state.EXPECT().PossibleActions().AnyTimes().Return(actions)
+
+			if testCase.expError == nil {
+				// Hacky, but since the current test cases only ever setup for
+				// zero or one possible actions, if we are expecting an action
+				// to be returned, we assume it is action[0].
+				state.EXPECT().GetAction(testCase.expAction).Return(actions[0], nil).Times(1)
+			}
 
 			a := qlearning.NewBayesianAgent(1, .5, .5)
 			actAction, actError := a.RecommendAction(state)
