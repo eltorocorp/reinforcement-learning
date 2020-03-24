@@ -1,7 +1,6 @@
 package qlearning_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/eltorocorp/reinforcement-learning/mocks/agent"
@@ -12,20 +11,25 @@ import (
 )
 
 func TestBayesianAgentRecommendAction(t *testing.T) {
-	// when bootstrapping, an action should be returned
 	const testStateID = "testStateID"
 
 	testCases := []struct {
 		name            string
-		possibleActions []iface.Actioner
-		expAction       iface.Actioner
+		possibleActions []string
+		expAction       string
 		expError        error
 	}{
+		// {
+		// 	name:            "Error if no actions",
+		// 	possibleActions: []string{},
+		// 	expAction:       "",
+		// 	expError:        fmt.Errorf("state '%v' reports no possible actions", testStateID),
+		// },
 		{
-			name:            "Error if no actions",
-			possibleActions: []iface.Actioner{},
-			expAction:       nil,
-			expError:        fmt.Errorf("state '%v' reports no possible actions", testStateID),
+			name:            "Action returned when bootstrapping",
+			possibleActions: []string{"A"},
+			expAction:       "A",
+			expError:        nil,
 		},
 	}
 
@@ -36,12 +40,23 @@ func TestBayesianAgentRecommendAction(t *testing.T) {
 
 			state := agent.NewMockStater(mc)
 			state.EXPECT().ID().AnyTimes().Return(testStateID)
-			state.EXPECT().PossibleActions().AnyTimes().Return(testCase.possibleActions)
 
-			a := qlearning.NewBayesianAgent(1, 1, 1)
+			actions := make([]iface.Actioner, len(testCase.possibleActions))
+			for i, id := range testCase.possibleActions {
+				newAction := agent.NewMockActioner(mc)
+				newAction.EXPECT().ID().AnyTimes().Return(id)
+				actions[i] = newAction
+			}
+			state.EXPECT().PossibleActions().AnyTimes().Return(actions)
+
+			a := qlearning.NewBayesianAgent(1, .5, .5)
 			actAction, actError := a.RecommendAction(state)
 
-			assert.Equal(t, testCase.expAction, actAction)
+			if testCase.expError == nil {
+				if assert.NotNil(t, actAction) {
+					assert.Equal(t, testCase.expAction, actAction.ID())
+				}
+			}
 			assert.Equal(t, testCase.expError, actError)
 		})
 	}
