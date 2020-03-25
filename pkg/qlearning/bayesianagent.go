@@ -99,7 +99,7 @@ func (a *BayesianAgent) Learn(previousState iface.Stater, actionTaken iface.Acti
 		a.learningRate,
 		reward,
 		a.discountFactor,
-		a.getBestValue(currentState).QValueWeighted(),
+		a.getBestValue(currentState),
 	)
 	stats.SetCalls(stats.Calls() + 1)
 	stats.SetQValueRaw(newValue)
@@ -185,10 +185,11 @@ func nanToZero(f float64) float64 {
 }
 
 // getBestValue returns the best possible q-value for a state.
-func (a *BayesianAgent) getBestValue(state iface.Stater) (bestStat iface.ActionStatter) {
+func (a *BayesianAgent) getBestValue(state iface.Stater) (bestQValue float64) {
 	for _, stat := range a.qmap.GetActionsForState(state) {
-		if nanToZero(stat.QValueWeighted()) > nanToZero(bestStat.QValueWeighted()) {
-			bestStat = stat
+		q := nanToZero(stat.QValueWeighted())
+		if q > bestQValue {
+			bestQValue = q
 		}
 	}
 	return
