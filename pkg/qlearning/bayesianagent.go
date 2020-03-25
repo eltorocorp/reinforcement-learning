@@ -126,7 +126,7 @@ func (a *BayesianAgent) RecommendAction(state iface.Stater) (iface.Actioner, err
 	}
 
 	bestActions := []actionValue{}
-	bestValue := 0.0
+	bestValue := -1 * math.MaxFloat64
 
 	a.applyActionWeights(state)
 	for action, stats := range a.qmap.GetActionsForState(state) {
