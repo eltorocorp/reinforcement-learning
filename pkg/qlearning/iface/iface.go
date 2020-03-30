@@ -48,6 +48,12 @@ type Agenter interface {
 	// Learn updates the model for a given state and action using the provided
 	// Rewarder.
 	Learn(previousState Stater, actionTaken Actioner, currentState Stater, reward float64)
+
+	// MarshalJSON serializes agent's current model.
+	MarshalJSON() ([]byte, error)
+
+	// UnmarshalJSON hydrates the agent using an existing model.
+	UnmarshalJSON([]byte) error
 }
 
 // ActionStatter is something that can represent the stats associated with an
