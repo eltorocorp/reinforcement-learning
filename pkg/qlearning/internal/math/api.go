@@ -23,7 +23,7 @@ func Bellman(oldValue, learningRate, reward, discountFactor, optimalFutureValue 
 //   see https://en.wikipedia.org/wiki/Bayesian_average
 //   see https://fulmicoton.com/posts/bayesian_rating/
 func BayesianAverage(c, n, m, v float64) float64 {
-	return SafeDivide(c*m+n*v, c*n)
+	return SafeDivide(c*m+n*v, c+n)
 }
 
 // SafeDivide returns 0 if the divisor is 0, avoiding div/0 panics.
