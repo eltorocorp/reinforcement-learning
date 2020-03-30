@@ -198,12 +198,12 @@ func (a *BayesianAgent) getBestValue(state iface.Stater) (bestQValue float64) {
 
 // MarshalJSON serializes agent's current model.
 func (a *BayesianAgent) MarshalJSON() ([]byte, error) {
-	return json.MarshalIndent(a.qmap, "", "  ")
+	return json.MarshalIndent(a.qmap.Data, "", "  ")
 }
 
 // UnmarshalJSON hydrates the agent using an existing model.
 func (a *BayesianAgent) UnmarshalJSON(model []byte) error {
-	return json.Unmarshal(model, a.qmap)
+	return json.Unmarshal(model, &a.qmap.Data)
 }
 
 var _ iface.Agenter = (*BayesianAgent)(nil)

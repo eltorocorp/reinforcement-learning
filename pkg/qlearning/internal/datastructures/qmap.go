@@ -4,13 +4,13 @@ import "github.com/eltorocorp/reinforcement-learning/pkg/qlearning/iface"
 
 // QMap is a mapping of states to actions (and each action's q-value).
 type QMap struct {
-	data map[string]map[string]iface.ActionStatter
+	Data map[string]map[string]iface.ActionStatter
 }
 
 // NewQMap returns a new QMap
 func NewQMap() *QMap {
 	return &QMap{
-		data: map[string]map[string]iface.ActionStatter{},
+		Data: map[string]map[string]iface.ActionStatter{},
 	}
 }
 
@@ -30,8 +30,8 @@ func (qq *QMap) UpdateStats(state iface.Stater, action iface.Actioner, stats ifa
 
 // GetActionsForState returns the actions associated with a given state.
 func (qq *QMap) GetActionsForState(state iface.Stater) map[string]iface.ActionStatter {
-	if _, exists := qq.data[state.ID()]; !exists {
-		qq.data[state.ID()] = make(map[string]iface.ActionStatter)
+	if _, exists := qq.Data[state.ID()]; !exists {
+		qq.Data[state.ID()] = make(map[string]iface.ActionStatter)
 	}
-	return qq.data[state.ID()]
+	return qq.Data[state.ID()]
 }
