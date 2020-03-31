@@ -33,11 +33,7 @@ import (
 // agent begins to evaluate the action on its observed cumulative reward moreso
 // than the mean of all other actions.
 type BayesianAgent struct {
-	// TieBreakSeeder is a function that returns a number used to seed the
-	// random number generator used to break ties between actions of equal value.
-	// This property defaults to a function that returns time.Now().UnixNano(),
-	// but is exposed so this behavior can be overridden for testing.
-	TieBreakSeeder   func() int64
+	TieBreaker       func(int) int
 	qmap             *datastructures.QMap
 	learningRate     float64
 	discountFactor   float64
@@ -63,7 +59,10 @@ type BayesianAgent struct {
 //  see: https://en.wikipedia.org/wiki/Q-learning#Discount_factor
 func NewBayesianAgent(primingThreshold int, learningRate, discountFactor float64) *BayesianAgent {
 	return &BayesianAgent{
-		TieBreakSeeder:   func() int64 { return time.Now().UnixNano() },
+		TieBreaker: func(n int) int {
+			rand.Seed(time.Now().Local().UnixNano())
+			return rand.Intn(n)
+		},
 		qmap:             datastructures.NewQMap(),
 		discountFactor:   discountFactor,
 		learningRate:     learningRate,
@@ -144,8 +143,7 @@ func (a *BayesianAgent) RecommendAction(state iface.Stater) (iface.Actioner, err
 		return nil, fmt.Errorf("state '%v' reports no possible actions", state.ID())
 	}
 
-	rand.Seed(a.TieBreakSeeder())
-	tieBreaker := rand.Intn(len(bestActions))
+	tieBreaker := a.TieBreaker(len(bestActions))
 	bestAction, err := state.GetAction(bestActions[tieBreaker].action)
 	if err != nil {
 		return nil, err
