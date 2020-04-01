@@ -125,3 +125,50 @@ func Test_BayesianAgentLearn(t *testing.T) {
 	expected := "{\n  \"A\": {\n    \"X\": {\n      \"CallCount\": 1,\n      \"QRaw\": 1,\n      \"QWeighted\": 0.6969696969696969\n    },\n    \"Y\": {\n      \"CallCount\": 1,\n      \"QRaw\": 1,\n      \"QWeighted\": 0.6969696969696969\n    },\n    \"Z\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0.6666666666666666\n    }\n  },\n  \"B\": {\n    \"X\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0\n    },\n    \"Y\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0\n    },\n    \"Z\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0\n    }\n  }\n}"
 	assert.Equal(t, expected, string(result))
 }
+
+func Test_Transition(t *testing.T) {
+
+	testCases := []struct {
+		name               string
+		actionIsCompatible bool
+		expError           error
+	}{
+		{
+			name:               "happy path",
+			actionIsCompatible: true,
+			expError:           nil,
+		},
+		{
+			name:               "incompatible action returns error",
+			actionIsCompatible: false,
+			expError:           fmt.Errorf("action X is not compatible with state A"),
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			mc := gomock.NewController(t)
+			defer mc.Finish()
+
+			ba := qlearning.NewBayesianAgent(0, 0, 0)
+			action := agent.NewMockActioner(mc)
+			currentState := agent.NewMockStater(mc)
+			currentState.EXPECT().
+				ActionIsCompatible(action).
+				Return(testCase.actionIsCompatible).
+				Times(1)
+
+			if testCase.expError == nil {
+				currentState.EXPECT().Apply(gomock.Any()).Return(nil).Times(1)
+				err := ba.Transition(currentState, action)
+				assert.NoError(t, err)
+			} else {
+				currentState.EXPECT().ID().Return("A").Times(1)
+				action.EXPECT().ID().Return("X").Times(1)
+				err := ba.Transition(currentState, action)
+				assert.Error(t, err, testCase.expError)
+			}
+		})
+	}
+
+}
