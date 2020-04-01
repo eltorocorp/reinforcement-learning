@@ -106,6 +106,12 @@ func Test_BayesianAgentLearn(t *testing.T) {
 
 	currentState := agent.NewMockStater(mc)
 	currentState.EXPECT().ID().Return("B").AnyTimes()
+	currentState.EXPECT().PossibleActions().Return(
+		[]iface.Actioner{
+			action1,
+			action2,
+			action3,
+		}).AnyTimes()
 
 	reward := 1.0
 	ba.Learn(previousState, action1, currentState, reward)
@@ -116,6 +122,6 @@ func Test_BayesianAgentLearn(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected := "{\n  \"A\": {\n    \"X\": {\n      \"CallCount\": 1,\n      \"QRaw\": 1,\n      \"QWeighted\": 0.6969696969696969\n    },\n    \"Y\": {\n      \"CallCount\": 1,\n      \"QRaw\": 1,\n      \"QWeighted\": 0.6969696969696969\n    },\n    \"Z\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0.6666666666666666\n    }\n  },\n  \"B\": {}\n}"
+	expected := "{\n  \"A\": {\n    \"X\": {\n      \"CallCount\": 1,\n      \"QRaw\": 1,\n      \"QWeighted\": 0.6969696969696969\n    },\n    \"Y\": {\n      \"CallCount\": 1,\n      \"QRaw\": 1,\n      \"QWeighted\": 0.6969696969696969\n    },\n    \"Z\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0.6666666666666666\n    }\n  },\n  \"B\": {\n    \"X\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0\n    },\n    \"Y\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0\n    },\n    \"Z\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0\n    }\n  }\n}"
 	assert.Equal(t, expected, string(result))
 }

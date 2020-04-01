@@ -94,6 +94,7 @@ func (a *BayesianAgent) Learn(previousState iface.Stater, actionTaken iface.Acti
 		stats = new(ActionStats)
 	}
 
+	a.applyActionWeights(currentState)
 	newValue := qlmath.Bellman(
 		stats.QValueWeighted(),
 		a.learningRate,

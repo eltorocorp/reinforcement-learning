@@ -30,7 +30,8 @@ func (qq *QMap) UpdateStats(state iface.Stater, action iface.Actioner, stats ifa
 
 // GetActionsForState returns the actions associated with a given state.
 func (qq *QMap) GetActionsForState(state iface.Stater) map[string]iface.ActionStatter {
-	if _, exists := qq.Data[state.ID()]; !exists {
+	i := state.ID()
+	if _, exists := qq.Data[i]; !exists {
 		qq.Data[state.ID()] = make(map[string]iface.ActionStatter)
 	}
 	return qq.Data[state.ID()]
