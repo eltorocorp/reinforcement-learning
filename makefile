@@ -14,7 +14,7 @@ buildmocks:
 	@echo Building mocks...
 
 	@mkdir mocks/agent && \
-		mockgen -destination=./mocks/agent/agent.go -package agent github.com/eltorocorp/reinforcement-learning/pkg/qlearning/iface Stater,Actioner
+		mockgen -destination=./mocks/agent/agent.go -package agent github.com/eltorocorp/reinforcement-learning/pkg/qlearning/iface Stater,Actioner,ActionStatter
 .PHONY: buildmocks
 
 test:
