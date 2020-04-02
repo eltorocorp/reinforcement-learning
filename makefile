@@ -1,4 +1,4 @@
-local: build buildmocks test
+local: buildmocks build test
 
 build:
 	@echo Updating build tooling...

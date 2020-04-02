@@ -1,7 +1,6 @@
 package qlearning
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
@@ -195,14 +194,34 @@ func (a *BayesianAgent) getBestValue(state iface.Stater) (bestQValue float64) {
 	return
 }
 
-// MarshalJSON serializes agent's current model.
-func (a *BayesianAgent) MarshalJSON() ([]byte, error) {
-	return json.MarshalIndent(a.qmap.Data, "", "  ")
+// AgentContext provides information about the internal conditions of an Agent.
+type AgentContext struct {
+	LearningRate     float64
+	DiscountFactor   float64
+	PrimingThreshold int
+	QValues          map[string]map[string]iface.ActionStatter
 }
 
-// UnmarshalJSON hydrates the agent using an existing model.
-func (a *BayesianAgent) UnmarshalJSON(model []byte) error {
-	return json.Unmarshal(model, &a.qmap.Data)
+// GetAgentContext provides information about the internal conditions of the
+// Agent. It is intended to allow the current state of the Agent to be
+// serialized without exposing fields that should remain private.
+func (a *BayesianAgent) GetAgentContext() AgentContext {
+	return AgentContext{
+		LearningRate:     a.learningRate,
+		DiscountFactor:   a.discountFactor,
+		PrimingThreshold: a.primingThreshold,
+		QValues:          a.qmap.Data,
+	}
+}
+
+// SetAgentContext sets the internal conditions of the Agent based on a
+// pre-existsing AgentContext. This is provided to facilitate hydrating an
+// Agent without exposing fields that should remain private.
+func (a *BayesianAgent) SetAgentContext(c AgentContext) {
+	a.learningRate = c.LearningRate
+	a.discountFactor = c.DiscountFactor
+	a.primingThreshold = c.PrimingThreshold
+	a.qmap.Data = c.QValues
 }
 
 var _ iface.Agenter = (*BayesianAgent)(nil)

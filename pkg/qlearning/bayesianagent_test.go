@@ -1,6 +1,7 @@
 package qlearning_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -117,13 +118,34 @@ func Test_BayesianAgentLearn(t *testing.T) {
 	ba.Learn(previousState, action1, currentState, reward)
 	ba.Learn(previousState, action2, currentState, reward)
 
-	result, err := ba.MarshalJSON()
+	result := ba.GetAgentContext()
+	actualJSON, err := json.Marshal(result)
+
+	expected := qlearning.AgentContext{
+		LearningRate:     1,
+		DiscountFactor:   0,
+		PrimingThreshold: 10,
+		QValues: map[string]map[string]iface.ActionStatter{
+			"A": map[string]iface.ActionStatter{
+				"X": &qlearning.ActionStats{CallCount: 1, QRaw: 1, QWeighted: 0.6969696969696969},
+				"Y": &qlearning.ActionStats{CallCount: 1, QRaw: 1, QWeighted: 0.6969696969696969},
+				"Z": &qlearning.ActionStats{CallCount: 0, QRaw: 0, QWeighted: 0.66666666666666666},
+			},
+			"B": map[string]iface.ActionStatter{
+				"X": &qlearning.ActionStats{CallCount: 0, QRaw: 0, QWeighted: 0},
+				"Y": &qlearning.ActionStats{CallCount: 0, QRaw: 0, QWeighted: 0},
+				"Z": &qlearning.ActionStats{CallCount: 0, QRaw: 0, QWeighted: 0},
+			},
+		},
+	}
+
+	expectedJSON, err := json.Marshal(expected)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expected := "{\n  \"A\": {\n    \"X\": {\n      \"CallCount\": 1,\n      \"QRaw\": 1,\n      \"QWeighted\": 0.6969696969696969\n    },\n    \"Y\": {\n      \"CallCount\": 1,\n      \"QRaw\": 1,\n      \"QWeighted\": 0.6969696969696969\n    },\n    \"Z\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0.6666666666666666\n    }\n  },\n  \"B\": {\n    \"X\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0\n    },\n    \"Y\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0\n    },\n    \"Z\": {\n      \"CallCount\": 0,\n      \"QRaw\": 0,\n      \"QWeighted\": 0\n    }\n  }\n}"
-	assert.Equal(t, expected, string(result))
+	assert.Equal(t, string(expectedJSON), string(actualJSON))
+
 }
 
 func Test_Transition(t *testing.T) {
